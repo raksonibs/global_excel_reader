@@ -1,10 +1,10 @@
 require_relative 'test_helper'
 
-describe SimpleXlsxReader do
+describe GlobalExcelReader do
   let(:lower_case_shared_strings) { File.join(File.dirname(__FILE__),
                                                 'lower_case_sharedstrings.xlsx') }
 
-  let(:subject) { SimpleXlsxReader::Document.new(lower_case_shared_strings) }
+  let(:subject) { GlobalExcelReader::Document.new(lower_case_shared_strings) }
 
 
   describe '#to_hash' do

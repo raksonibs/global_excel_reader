@@ -1,13 +1,13 @@
 require_relative 'test_helper'
 require 'time'
 
-SXR = SimpleXlsxReader
+SXR = GlobalExcelReader
 
-describe SimpleXlsxReader do
+describe GlobalExcelReader do
   let(:sesame_street_blog_file) { File.join(File.dirname(__FILE__),
                                             'sesame_street_blog.xlsx') }
 
-  let(:subject) { SimpleXlsxReader::Document.new(sesame_street_blog_file) }
+  let(:subject) { GlobalExcelReader::Document.new(sesame_street_blog_file) }
 
   describe '#to_hash' do
     it 'reads an xlsx file into a hash of {[sheet name] => [data]}' do
@@ -26,8 +26,8 @@ describe SimpleXlsxReader do
     end
   end
 
-  describe SimpleXlsxReader::Document::Mapper do
-    let(:described_class) { SimpleXlsxReader::Document::Mapper }
+  describe GlobalExcelReader::Document::Mapper do
+    let(:described_class) { GlobalExcelReader::Document::Mapper }
 
     describe '::cast' do
       it 'reads type s as a shared string' do
@@ -96,7 +96,7 @@ describe SimpleXlsxReader do
 
     describe '#shared_strings' do
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.shared_strings = Nokogiri::XML(File.read(
             File.join(File.dirname(__FILE__), 'shared_strings.xml') )).remove_namespaces!
         end
@@ -115,14 +115,14 @@ describe SimpleXlsxReader do
 
     describe '#style_types' do
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.styles = Nokogiri::XML(File.read(
             File.join(File.dirname(__FILE__), 'styles.xml') )).remove_namespaces!
         end
       end
 
       let(:mapper) do
-        SimpleXlsxReader::Document::Mapper.new(xml)
+        GlobalExcelReader::Document::Mapper.new(xml)
       end
 
       it 'reads custom formatted styles (numFmtId >= 164)' do
@@ -189,7 +189,7 @@ describe SimpleXlsxReader do
       end
 
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.sheets = [sheet]
           xml.styles = generic_style
         end
@@ -242,11 +242,11 @@ describe SimpleXlsxReader do
 
     describe "parse errors" do
       after do
-        SimpleXlsxReader.configuration.catch_cell_load_errors = false
+        GlobalExcelReader.configuration.catch_cell_load_errors = false
       end
 
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.sheets = [Nokogiri::XML(
             <<-XML
             <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -276,14 +276,14 @@ describe SimpleXlsxReader do
       end
 
       it 'raises if configuration.catch_cell_load_errors' do
-        SimpleXlsxReader.configuration.catch_cell_load_errors = false
+        GlobalExcelReader.configuration.catch_cell_load_errors = false
 
         lambda { described_class.new(xml).parse_sheet('test', xml.sheets.first, nil) }.
-          must_raise(SimpleXlsxReader::CellLoadError)
+          must_raise(GlobalExcelReader::CellLoadError)
       end
 
       it 'records a load error if not configuration.catch_cell_load_errors' do
-        SimpleXlsxReader.configuration.catch_cell_load_errors = true
+        GlobalExcelReader.configuration.catch_cell_load_errors = true
 
         sheet = described_class.new(xml).parse_sheet('test', xml.sheets.first, nil)
         sheet.load_errors[[0,0]].must_include 'invalid value for Float'
@@ -293,7 +293,7 @@ describe SimpleXlsxReader do
     describe "missing numFmtId attributes" do
 
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.sheets = [Nokogiri::XML(
                             <<-XML
             <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -331,7 +331,7 @@ describe SimpleXlsxReader do
 
     describe 'parsing types' do
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.sheets = [Nokogiri::XML(
             <<-XML
               <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -458,7 +458,7 @@ describe SimpleXlsxReader do
 
     describe 'parsing documents with blank rows' do
       let(:xml) do
-        SimpleXlsxReader::Document::Xml.new.tap do |xml|
+        GlobalExcelReader::Document::Xml.new.tap do |xml|
           xml.sheets = [Nokogiri::XML(
             <<-XML
               <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">

@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'simple_xlsx_reader/version'
+require 'global_excel_reader/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "simple_xlsx_reader"
-  gem.version       = SimpleXlsxReader::VERSION
-  gem.authors       = ["Woody Peterson"]
-  gem.email         = ["woody.peterson@gmail.com"]
-  gem.description   = %q{Read xlsx data the Ruby way}
-  gem.summary       = %q{Read xlsx data the Ruby way}
+  gem.name          = "global_excel_reader"
+  gem.version       = GlobalExcelReader::VERSION
+  gem.authors       = ["Oskar Niburski"]
+  gem.email         = ["oskarniburski@gmail.com"]
+  gem.description   = %q{Read all excel data with Ruby and grab styles, data, etc.}
+  gem.summary       = %q{Read all excel data with Ruby and grab styles, data, etc.}
   gem.homepage      = ""
 
   gem.add_dependency 'nokogiri'

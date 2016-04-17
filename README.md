@@ -1,8 +1,8 @@
-# GlobalExcelReader [![Build Status](https://travis-ci.org/woahdae/simple_xlsx_reader.svg?branch=master)](https://travis-ci.org/woahdae/simple_xlsx_reader)
+# GlobalExcelReader [![Build Status](https://travis-ci.org/woahdae/global_excel_reader.svg?branch=master)](https://travis-ci.org/woahdae/global_excel_reader)
 
 This is a global reader for s3 excel files, as well as both xml, xlsx, and xls files. This grabs the data, the styles, and other important attributes, and outputs an xml file you can format in your views.
 
-The intial structure is based off of the gem 'simple_xlsx_reader'.
+The intial structure is based off of the gem 'global_excel_reader'.
 
 This is *not* a rewrite of excel in Ruby. Font styles, for
 example, are parsed to determine whether a cell is a number or a date,

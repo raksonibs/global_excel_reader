@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 require 'minitest/benchmark'
 
-describe 'SimpleXlsxReader Benchmark' do
+describe 'GlobalExcelReader Benchmark' do
 
   # n is 0-indexed for us, then converted to 1-indexed for excel
   def build_row(n)
@@ -61,7 +61,7 @@ describe 'SimpleXlsxReader Benchmark' do
     ).remove_namespaces!
     base.at_xpath("/worksheet/sheetData").add_child(build_row(0))
 
-    @xml = SimpleXlsxReader::Document::Xml.new.tap do |xml|
+    @xml = GlobalExcelReader::Document::Xml.new.tap do |xml|
       xml.sheets = [base]
 
       # s='0' above refers to the value of numFmtId at cellXfs index 0,
@@ -101,7 +101,7 @@ describe 'SimpleXlsxReader Benchmark' do
     raise "not enough sample data; asked for #{n}, only have #{@xml.sheets.size}"\
       if @xml.sheets[n].nil?
 
-    sheet = SimpleXlsxReader::Document::Mapper.new(@xml).
+    sheet = GlobalExcelReader::Document::Mapper.new(@xml).
       parse_sheet('test', @xml.sheets[n], nil)
 
     raise "sheet didn't parse correctly; expected #{n + 1} rows, got #{sheet.rows.size}"\

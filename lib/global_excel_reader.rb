@@ -1,4 +1,4 @@
-require "simple_xlsx_reader/version"
+require "global_excel_reader/version"
 require 'nokogiri'
 require 'date'
 
@@ -8,15 +8,15 @@ begin
   # Try loading rubyzip < 1.0
   require 'zip/zip'
   require 'zip/zipfilesystem'
-  SimpleXlsxReader::Zip = Zip::ZipFile
+  GlobalExcelReader::Zip = Zip::ZipFile
 rescue LoadError
   # Try loading rubyzip >= 1.0
   require 'zip'
   require 'zip/filesystem'
-  SimpleXlsxReader::Zip = Zip::File
+  GlobalExcelReader::Zip = Zip::File
 end
 
-module SimpleXlsxReader
+module GlobalExcelReader
   class CellLoadError < StandardError; end
 
   # We support hyperlinks as a "type" even though they're technically
@@ -100,7 +100,7 @@ module SimpleXlsxReader
 
       def self.load(file_path)
         self.new.tap do |xml|
-          SimpleXlsxReader::Zip.open(file_path) do |zip|
+          GlobalExcelReader::Zip.open(file_path) do |zip|
             xml.workbook = Nokogiri::XML(zip.read('xl/workbook.xml')).remove_namespaces!
             xml.styles   = Nokogiri::XML(zip.read('xl/styles.xml')).remove_namespaces!
 
@@ -216,7 +216,7 @@ module SimpleXlsxReader
                             :shared_strings => shared_strings,
                             :base_date => base_date)
           rescue => e
-            if !SimpleXlsxReader.configuration.catch_cell_load_errors
+            if !GlobalExcelReader.configuration.catch_cell_load_errors
               error = CellLoadError.new(
                 "Row #{row_idx}, Col #{col_idx}: #{e.message}")
               error.set_backtrace(e.backtrace)
