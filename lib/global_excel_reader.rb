@@ -68,12 +68,20 @@ module GlobalExcelReader
       @file_path = file_path
     end
 
-    def sheets
+    def sheets      
       @sheets ||= Mapper.new(xml).load_sheets
     end
 
     def to_hash
-      sheets.inject({}) {|acc, sheet| acc[sheet.name] = sheet.rows; acc}
+      if /\.(?:xlsx)/i =~ @file_path
+        sheets.inject({}) {|acc, sheet| acc[sheet.name] = sheet.rows; acc}
+      else
+        self.raw_convert(@file_path)
+      end
+    end
+
+    def get_sheets
+      @sheets
     end
 
     def raw_convert(file_path)
@@ -92,7 +100,7 @@ module GlobalExcelReader
         rows.each_with_index do |row, row_index|          
           row_arr = []
           row.children.each_with_index do |cell, cell_index|
-            if cell.class.to_s != "Nokogiri::XML::Text"
+            if cell.class.to_s == "Nokogiri::XML::Element"
               first_child = cell.text.strip
               potential_value = if first_child.empty?
                 nil 
@@ -106,16 +114,12 @@ module GlobalExcelReader
           arr[worksheet_name] << row_arr
         end
       end
-      binding.pry
-      @sheets = arr
+
+      arr
     end
 
-    def xml
-      if /\.(?:xlsx)/i =~ file_path
-        Xml.load(file_path)
-      else
-        self.raw_convert(file_path)
-      end
+    def xml      
+      Xml.load(file_path)
     end
 
     class Sheet < Struct.new(:name, :rows)
