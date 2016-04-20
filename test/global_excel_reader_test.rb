@@ -1,13 +1,22 @@
 require_relative 'test_helper'
 require 'time'
 
-SXR = GlobalExcelReader
+GER = GlobalExcelReader
 
 describe GlobalExcelReader do
   let(:sesame_street_blog_file) { File.join(File.dirname(__FILE__),
                                             'sesame_street_blog.xlsx') }
+  let(:animal_network_csv_file) { File.join(File.dirname(__FILE__),
+                                            'animal_network.csv') }
+  let(:animal_network_xls_file) { File.join(File.dirname(__FILE__),
+                                            'animal_network.xls') }
+  let(:animal_network_xml_file) { File.join(File.dirname(__FILE__),
+                                            'animal_network.xml') }
 
   let(:subject) { GlobalExcelReader::Document.new(sesame_street_blog_file) }
+  let(:subject_csv) { GlobalExcelReader::Document.new(animal_network_csv_file) }
+  let(:subject_xls) { GlobalExcelReader::Document.new(animal_network_xls_file) }
+  let(:subject_xml) { GlobalExcelReader::Document.new(animal_network_xml_file) }
 
   describe '#to_hash' do
     it 'reads an xlsx file into a hash of {[sheet name] => [data]}' do
@@ -18,13 +27,65 @@ describe GlobalExcelReader do
 
         "Posts"=>
           [["Author Name", "Title", "Body", "Created At", "Comment Count", "URL"],
-           ["Big Bird", "The Number 1", "The Greatest", Time.parse("2002-01-01 11:00:00 UTC"), 1, SXR::Hyperlink.new("http://www.example.com/hyperlink-function", "This uses the HYPERLINK() function")],
-           ["Big Bird", "The Number 2", "Second Best", Time.parse("2002-01-02 14:00:00 UTC"), 2, SXR::Hyperlink.new("http://www.example.com/hyperlink-gui", "This uses the hyperlink GUI option")],
+           ["Big Bird", "The Number 1", "The Greatest", Time.parse("2002-01-01 11:00:00 UTC"), 1, GER::Hyperlink.new("http://www.example.com/hyperlink-function", "This uses the HYPERLINK() function")],
+           ["Big Bird", "The Number 2", "Second Best", Time.parse("2002-01-02 14:00:00 UTC"), 2, GER::Hyperlink.new("http://www.example.com/hyperlink-gui", "This uses the hyperlink GUI option")],
            ["Big Bird", "Formula Dates", "Tricky tricky", Time.parse("2002-01-03 14:00:00 UTC"), 0, nil],
            ["Empty Eagress", nil, "The title, date, and comment have types, but no values", nil, nil, nil]]
       })
     end
   end
+
+  # describe '#convert_csv' do
+  #   it 'reads an csv file into a hash of {[sheet name] => [data]}' do
+  #     # note: csv only one worksheet
+  #     subject.to_hash.must_equal({
+  #       "Authors"=>
+  #         [["Name", "Occupation"],
+  #          ["Big Bird", "Teacher"]],
+
+  #       "Posts"=>
+  #         [["Author Name", "Title", "Body", "Created At", "Comment Count", "URL"],
+  #          ["Big Bird", "The Number 1", "The Greatest", Time.parse("2002-01-01 11:00:00 UTC"), 1, GER::Hyperlink.new("http://www.example.com/hyperlink-function", "This uses the HYPERLINK() function")],
+  #          ["Big Bird", "The Number 2", "Second Best", Time.parse("2002-01-02 14:00:00 UTC"), 2, GER::Hyperlink.new("http://www.example.com/hyperlink-gui", "This uses the hyperlink GUI option")],
+  #          ["Big Bird", "Formula Dates", "Tricky tricky", Time.parse("2002-01-03 14:00:00 UTC"), 0, nil],
+  #          ["Empty Eagress", nil, "The title, date, and comment have types, but no values", nil, nil, nil]]
+  #     })
+  #   end
+  # end
+
+  describe '#convert_xml' do
+    it 'reads an xml file into a hash of {[sheet name] => [data]}' do
+      subject_xml.to_hash.must_equal({
+        "Authors"=>
+          [["Name", "Occupation"],
+           ["Big Bird", "Teacher"]],
+
+        "Posts"=>
+          [["Author Name", "Title", "Body", "Created At", "Comment Count", "URL"],
+           ["Big Bird", "The Number 1", "The Greatest", Time.parse("2002-01-01 11:00:00 UTC"), 1, GER::Hyperlink.new("http://www.example.com/hyperlink-function", "This uses the HYPERLINK() function")],
+           ["Big Bird", "The Number 2", "Second Best", Time.parse("2002-01-02 14:00:00 UTC"), 2, GER::Hyperlink.new("http://www.example.com/hyperlink-gui", "This uses the hyperlink GUI option")],
+           ["Big Bird", "Formula Dates", "Tricky tricky", Time.parse("2002-01-03 14:00:00 UTC"), 0, nil],
+           ["Empty Eagress", nil, "The title, date, and comment have types, but no values", nil, nil, nil]]
+      })
+    end
+  end
+
+  # describe '#convert_xls' do
+  #   it 'reads an xls file into a hash of {[sheet name] => [data]}' do
+  #     subject.to_hash.must_equal({
+  #       "Authors"=>
+  #         [["Name", "Occupation"],
+  #          ["Big Bird", "Teacher"]],
+
+  #       "Posts"=>
+  #         [["Author Name", "Title", "Body", "Created At", "Comment Count", "URL"],
+  #          ["Big Bird", "The Number 1", "The Greatest", Time.parse("2002-01-01 11:00:00 UTC"), 1, GER::Hyperlink.new("http://www.example.com/hyperlink-function", "This uses the HYPERLINK() function")],
+  #          ["Big Bird", "The Number 2", "Second Best", Time.parse("2002-01-02 14:00:00 UTC"), 2, GER::Hyperlink.new("http://www.example.com/hyperlink-gui", "This uses the hyperlink GUI option")],
+  #          ["Big Bird", "Formula Dates", "Tricky tricky", Time.parse("2002-01-03 14:00:00 UTC"), 0, nil],
+  #          ["Empty Eagress", nil, "The title, date, and comment have types, but no values", nil, nil, nil]]
+  #     })
+  #   end
+  # end
 
   describe GlobalExcelReader::Document::Mapper do
     let(:described_class) { GlobalExcelReader::Document::Mapper }
@@ -84,12 +145,12 @@ describe GlobalExcelReader do
         let(:url) { "http://www.example.com/hyperlink" }
         it 'creates a hyperlink with a string type' do
           described_class.cast("A link", 'str', :string, url: url).
-            must_equal SXR::Hyperlink.new(url, "A link")
+            must_equal GER::Hyperlink.new(url, "A link")
         end
 
         it 'creates a hyperlink with a shared string type' do
           described_class.cast("2", 's', nil, shared_strings: ['a','b','c'], url: url).
-            must_equal SXR::Hyperlink.new(url, 'c')
+            must_equal GER::Hyperlink.new(url, 'c')
         end
       end
     end
@@ -445,13 +506,13 @@ describe GlobalExcelReader do
 
       it "reads hyperlinks created via HYPERLINK()" do
         @row[7].must_equal(
-          SXR::Hyperlink.new(
+          GER::Hyperlink.new(
             "http://www.example.com/hyperlink-function", "HYPERLINK function"))
       end
 
       it "reads hyperlinks created via the GUI" do
         @row[8].must_equal(
-          SXR::Hyperlink.new(
+          GER::Hyperlink.new(
             "http://www.example.com/hyperlink-gui", "GUI-made hyperlink"))
       end
     end

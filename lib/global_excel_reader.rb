@@ -1,6 +1,7 @@
 require "global_excel_reader/version"
 require 'nokogiri'
 require 'date'
+require 'pry'
 
 # Rubyzip 1.0 only has different naming, everything else is the same, so let's
 # be flexible so we don't force people into a dependency hell w/ other gems.
@@ -78,6 +79,7 @@ module GlobalExcelReader
     def self.raw_convert(file_path)
       # xls, xml format
       # want csv as well
+      binding.pry
       arr = {}
       nok_doc = Nokogiri::XML(File.open(full_file_path))
       nok_doc.remove_namespaces!
@@ -91,18 +93,20 @@ module GlobalExcelReader
         rows.each_with_index do |row, row_index|
           row_indexed = row.children.any?{|e| !e.keys.blank?} ? row.children.reject{|e| e.keys.blank?} : row.children
           styled = row.children.any?{|e| !e.keys.blank?} ? true : false
+          row_arr = []
           row_indexed.each_with_index do |cell, cell_index|
             if (!styled && !cell.children.reject{|e| e.keys.blank?}.blank?) || styled
               first_child = cell.children.first
               potential_value = first_child.text rescue nil
               potential_type = first_child["Type"] rescue ''
               # row_num, col_num, value
-              arr[worksheet_name] << [row_index, cell_index, potential_value]
+              row_arr << potential_value
             end
           end
+          arr[worksheet_name] << row_arr
         end
       end
-
+      binding.pry
       @sheets = arr
     end
 
@@ -134,50 +138,54 @@ module GlobalExcelReader
       attr_accessor :workbook, :shared_strings, :sheets, :sheet_rels, :styles
 
       def self.load(file_path)
-        
-        self.new.tap do |xml|
-          GlobalExcelReader::Zip.open(file_path) do |zip|
-            xml.workbook = Nokogiri::XML(zip.read('xl/workbook.xml')).remove_namespaces!
-            xml.styles   = Nokogiri::XML(zip.read('xl/styles.xml')).remove_namespaces!
+        if /\.(?:xlsx)/i =~ file_path
+          self.new.tap do |xml|
+            GlobalExcelReader::Zip.open(file_path) do |zip|
+              xml.workbook = Nokogiri::XML(zip.read('xl/workbook.xml')).remove_namespaces!
+              xml.styles   = Nokogiri::XML(zip.read('xl/styles.xml')).remove_namespaces!
 
-            # optional feature used by excel, but not often used by xlsx
-            # generation libraries
-            ss_file =  (zip.to_a.map(&:name) & ['xl/sharedStrings.xml','xl/sharedstrings.xml'])[0]
-            if ss_file
-              xml.shared_strings = Nokogiri::XML(zip.read(ss_file)).remove_namespaces!
-            end
+              # optional feature used by excel, but not often used by xlsx
+              # generation libraries
+              ss_file =  (zip.to_a.map(&:name) & ['xl/sharedStrings.xml','xl/sharedstrings.xml'])[0]
+              if ss_file
+                xml.shared_strings = Nokogiri::XML(zip.read(ss_file)).remove_namespaces!
+              end
 
-            xml.sheets = []
-            xml.sheet_rels = []
+              xml.sheets = []
+              xml.sheet_rels = []
 
-            # Sometimes there's a zero-index sheet.xml, ex.
-            # Google Docs creates:
-            # xl/worksheets/sheet.xml
-            # xl/worksheets/sheet1.xml
-            # xl/worksheets/sheet2.xml
-            # While Excel creates:
-            # xl/worksheets/sheet1.xml
-            # xl/worksheets/sheet2.xml
-            if zip.file.file?('xl/worksheets/sheet.xml')
-              xml.sheets << Nokogiri::XML(zip.read('xl/worksheets/sheet.xml')).remove_namespaces!
-            end
+              # Sometimes there's a zero-index sheet.xml, ex.
+              # Google Docs creates:
+              # xl/worksheets/sheet.xml
+              # xl/worksheets/sheet1.xml
+              # xl/worksheets/sheet2.xml
+              # While Excel creates:
+              # xl/worksheets/sheet1.xml
+              # xl/worksheets/sheet2.xml
+              if zip.file.file?('xl/worksheets/sheet.xml')
+                xml.sheets << Nokogiri::XML(zip.read('xl/worksheets/sheet.xml')).remove_namespaces!
+              end
 
-            i = 0
-            loop do
-              i += 1
+              i = 0
+              loop do
+                i += 1
 
-              sheet_file_name = "xl/worksheets/sheet#{i}.xml"
+                sheet_file_name = "xl/worksheets/sheet#{i}.xml"
 
-              break unless zip.file.file?(sheet_file_name)
+                break unless zip.file.file?(sheet_file_name)
 
-              xml.sheets << Nokogiri::XML(zip.read(sheet_file_name)).remove_namespaces!
+                xml.sheets << Nokogiri::XML(zip.read(sheet_file_name)).remove_namespaces!
 
-              relationship_file_name = "xl/worksheets/_rels/sheet#{i}.xml.rels"
-              if zip.file.file?(relationship_file_name)
-                xml.sheet_rels[i-1] = Nokogiri::XML(zip.read(relationship_file_name)).remove_namespaces!
+                relationship_file_name = "xl/worksheets/_rels/sheet#{i}.xml.rels"
+                if zip.file.file?(relationship_file_name)
+                  xml.sheet_rels[i-1] = Nokogiri::XML(zip.read(relationship_file_name)).remove_namespaces!
+                end
               end
             end
           end
+        else
+          binding.pry
+          self.raw_convert(file_path)
         end
       end
     end

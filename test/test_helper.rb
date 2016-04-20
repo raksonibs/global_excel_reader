@@ -1,6 +1,7 @@
 gem 'minitest'
 require 'minitest/autorun'
 require 'minitest/spec'
+require 'minitest/pride'
 require 'pry'
 require 'time'
 
