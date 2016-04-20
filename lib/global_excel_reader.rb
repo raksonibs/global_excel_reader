@@ -90,6 +90,7 @@ module GlobalExcelReader
       arr = {}
       nok_doc = Nokogiri::XML(File.open(file_path))
       nok_doc.remove_namespaces!
+      binding.pry
       styles = nok_doc.xpath('//Style')
       worksheets = nok_doc.xpath("//Worksheet")
       worksheets.each_with_index do |worksheet, worksheet_index|
@@ -207,6 +208,7 @@ module GlobalExcelReader
 
       # Table of contents for the sheets, ex. {'Authors' => 0, ...}
       def sheet_toc
+        binding.pry
         xml.workbook.xpath('/workbook/sheets/sheet').
           inject({}) do |acc, sheet|
 
