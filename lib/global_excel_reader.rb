@@ -2,6 +2,12 @@ require "global_excel_reader/version"
 require 'nokogiri'
 require 'date'
 require 'pry'
+require 'open-uri'
+require 'rexml/document'
+require 'csv'
+require 'rubyXL'
+require 'roo'
+require 'zip'
 
 # Rubyzip 1.0 only has different naming, everything else is the same, so let's
 # be flexible so we don't force people into a dependency hell w/ other gems.
@@ -90,14 +96,13 @@ module GlobalExcelReader
 
     def nuanced_convert(file_path)
       full_file_path = File.expand_path(self.file_path)
-      # Dir.mkdir(File.join(Dir.home, "tmp"), 0700) rescue ''
-      file = 
-      # data = open(full_file_path)
-      # data.chmod(777)
-      # File.chmod(777, full_file_path)
-      # FileUtils.chmod(0777, full_file_path)
-      @file_path = full_file_path
-      self.raw_convert(full_file_path)
+      Dir.mkdir(File.join(Dir.home, "tmp"), 0777) rescue ''
+      FileUtils.cp(full_file_path, "#{Dir.home}/tmp/")      
+      new_file_xml_string = "#{Dir.home}/tmp/#{file_path.split("/").last.split(".").first}.xml"
+      FileUtils.mv("#{Dir.home}/tmp/#{file_path.split("/").last}", new_file_xml_string)
+      @file_path = new_file_xml_string
+      self.raw_convert(new_file_xml_string)
+      FileUtils.rm(new_file_xml_string)
     end
 
     def raw_convert(file_path)
@@ -106,7 +111,7 @@ module GlobalExcelReader
       arr = {}
       nok_doc = Nokogiri::XML(File.open(file_path))
       nok_doc.remove_namespaces!
-      binding.pry
+      binding.pry  
       styles = nok_doc.xpath('//Style')
       worksheets = nok_doc.xpath("//Worksheet")
       worksheets.each_with_index do |worksheet, worksheet_index|
