@@ -56,6 +56,8 @@ module GlobalExcelReader
   def self.open(file_path)
     if /\.(?:xlsx)/i =~ file_path
       Document.new(file_path).tap(&:sheets)
+    elsif /\.(?:xls)/i =~ file_path
+      Document.new(file_path).nuanced_convert
     else
       Document.new(file_path).raw_convert
     end
@@ -75,6 +77,8 @@ module GlobalExcelReader
     def to_hash
       if /\.(?:xlsx)/i =~ @file_path
         sheets.inject({}) {|acc, sheet| acc[sheet.name] = sheet.rows; acc}
+      elsif /\.(?:xls)/i =~ file_path
+        self.nuanced_convert(@file_path)
       else
         self.raw_convert(@file_path)
       end
@@ -82,6 +86,18 @@ module GlobalExcelReader
 
     def get_sheets
       @sheets
+    end
+
+    def nuanced_convert(file_path)
+      full_file_path = File.expand_path(self.file_path)
+      # Dir.mkdir(File.join(Dir.home, "tmp"), 0700) rescue ''
+      file = 
+      # data = open(full_file_path)
+      # data.chmod(777)
+      # File.chmod(777, full_file_path)
+      # FileUtils.chmod(0777, full_file_path)
+      @file_path = full_file_path
+      self.raw_convert(full_file_path)
     end
 
     def raw_convert(file_path)

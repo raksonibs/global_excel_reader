@@ -11,7 +11,7 @@ describe GlobalExcelReader do
   let(:animal_network_xls_file) { File.join(File.dirname(__FILE__),
                                             'animal_network.xls') }
   let(:animal_network_xml_file) { File.join(File.dirname(__FILE__),
-                                            'animal_network.xml') }
+                                            'animal_network_2.xml') }
 
   let(:subject) { GlobalExcelReader::Document.new(sesame_street_blog_file) }
   let(:subject_csv) { GlobalExcelReader::Document.new(animal_network_csv_file) }
