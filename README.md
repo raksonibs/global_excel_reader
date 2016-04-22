@@ -1,4 +1,4 @@
-# GlobalExcelReader [![Build Status](https://travis-ci.org/woahdae/global_excel_reader.svg?branch=master)](https://travis-ci.org/woahdae/global_excel_reader)
+# GlobalExcelReader [![Build Status](https://travis-ci.org/raksonibs/global_excel_reader.svg?branch=master)](https://travis-ci.org/raksonibs/global_excel_reader)
 
 This is a global reader for s3 excel files, as well as both xml, xlsx, and xls files. This grabs the data, the styles, and other important attributes, and outputs an xml file you can format in your views.
 
