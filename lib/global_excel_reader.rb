@@ -6,7 +6,7 @@ require 'open-uri'
 require 'rexml/document'
 require 'csv'
 require 'rubyXL'
-require 'roo'
+require 'roo-xls'
 require 'zip'
 
 # Rubyzip 1.0 only has different naming, everything else is the same, so let's
@@ -95,25 +95,52 @@ module GlobalExcelReader
     end
 
     def nuanced_convert(file_path)
-      full_file_path = File.expand_path(self.file_path)
-      Dir.mkdir(File.join(Dir.home, "tmp"), 0777) rescue ''
-      FileUtils.cp(full_file_path, "#{Dir.home}/tmp/")      
-      new_file_xml_string = "#{Dir.home}/tmp/#{file_path.split("/").last.split(".").first}.xml"
-      FileUtils.mv("#{Dir.home}/tmp/#{file_path.split("/").last}", new_file_xml_string)
-      @file_path = new_file_xml_string
-      self.raw_convert(new_file_xml_string)
-      FileUtils.rm(new_file_xml_string)
+      rooed = Roo::Excel.new(file_path)
+      converted_data = rooed.to_xml
+      self.raw_convert(file_path, converted_data, rooed)
     end
 
-    def raw_convert(file_path)
+    def raw_convert(file_path, converted_string = nil, rooed = nil)
       # xls, xml format
       # want csv as well
       arr = {}
-      nok_doc = Nokogiri::XML(File.open(file_path))
-      nok_doc.remove_namespaces!
-      binding.pry  
-      styles = nok_doc.xpath('//Style')
-      worksheets = nok_doc.xpath("//Worksheet")
+      nok_doc = converted_string ? Nokogiri::XML(converted_string) : Nokogiri::XML(File.open(file_path)) 
+      nok_doc.remove_namespaces!      
+      # styles = nok_doc.xpath('//Style')
+      # should fork out roo gem to be similiar!
+      worksheets = converted_string ? nok_doc.xpath('//sheet') : nok_doc.xpath("//Worksheet")      
+
+      final_data = if converted_string
+        iterate_rows(worksheets, rooed)
+      else
+        parse_rows(worksheets)
+      end
+      
+      final_data
+    end
+
+    def iterate_rows(worksheets, rooed)
+      arr = {}
+      worksheets.each_with_index do |worksheet, worksheet_index|
+        worksheet_name = worksheet.values[0]
+        worksheet_xpathed = Nokogiri::XML(worksheet.to_xml)
+        arr[worksheet_name] = []
+        
+        (rooed.first_row .. rooed.last_row).each do |row_num|
+          row_arr = []
+          (rooed.first_column .. rooed.last_column).each do |col_num|
+            potential_value = rooed.cell(row_num, col_num)
+            row_arr << potential_value
+          end
+          arr[worksheet_name] << row_arr
+        end
+
+      end
+      arr
+    end
+
+    def parse_rows(worksheets)
+      arr = {}
       worksheets.each_with_index do |worksheet, worksheet_index|
         worksheet_name = worksheet.values[0]
         worksheet_xpathed = Nokogiri::XML(worksheet.to_xml)
@@ -124,6 +151,7 @@ module GlobalExcelReader
           row.children.each_with_index do |cell, cell_index|
             if cell.class.to_s == "Nokogiri::XML::Element"
               first_child = cell.text.strip
+              first_child = [] if first_child == "#REF!"
               potential_value = if first_child.empty?
                 nil 
               else
@@ -136,7 +164,6 @@ module GlobalExcelReader
           arr[worksheet_name] << row_arr
         end
       end
-
       arr
     end
 
@@ -229,7 +256,6 @@ module GlobalExcelReader
 
       # Table of contents for the sheets, ex. {'Authors' => 0, ...}
       def sheet_toc
-        binding.pry
         xml.workbook.xpath('/workbook/sheets/sheet').
           inject({}) do |acc, sheet|
 
