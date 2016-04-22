@@ -1,13 +1,10 @@
 require "global_excel_reader/version"
 require 'nokogiri'
 require 'date'
-require 'pry'
 require 'open-uri'
 require 'rexml/document'
 require 'csv'
-require 'rubyXL'
 require 'roo-xls'
-require 'zip'
 
 # Rubyzip 1.0 only has different naming, everything else is the same, so let's
 # be flexible so we don't force people into a dependency hell w/ other gems.
@@ -111,7 +108,6 @@ module GlobalExcelReader
     def raw_convert(file_path, converted_string = nil, rooed = nil)
       # xls, xml format
       # want csv as well
-      arr = {}
       nok_doc = converted_string ? Nokogiri::XML(converted_string) : Nokogiri::XML(File.open(file_path)) 
       nok_doc.remove_namespaces!      
       # styles = nok_doc.xpath('//Style')
