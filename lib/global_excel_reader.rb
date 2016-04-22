@@ -64,6 +64,8 @@ module GlobalExcelReader
       Document.new(file_path).tap(&:sheets)
     elsif /\.(?:xls)/i =~ file_path
       Document.new(file_path).nuanced_convert
+    elsif /\.(?:csv)/i =~ file_path
+      Document.new(file_path).simple_convert
     else
       Document.new(file_path).raw_convert
     end
@@ -83,8 +85,10 @@ module GlobalExcelReader
     def to_hash
       if /\.(?:xlsx)/i =~ @file_path
         sheets.inject({}) {|acc, sheet| acc[sheet.name] = sheet.rows; acc}
-      elsif /\.(?:xls)/i =~ file_path
+      elsif /\.(?:xls)/i =~ @file_path
         self.nuanced_convert(@file_path)
+      elsif /\.(?:csv)/i =~ @file_path
+        self.simple_convert
       else
         self.raw_convert(@file_path)
       end
@@ -92,6 +96,10 @@ module GlobalExcelReader
 
     def get_sheets
       @sheets
+    end
+
+    def simple_convert      
+      CSV.parse(File.open(@file_path))
     end
 
     def nuanced_convert(file_path)
