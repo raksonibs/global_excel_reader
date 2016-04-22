@@ -66,7 +66,7 @@ module GlobalExcelReader
       Document.new(file_path).nuanced_convert
     elsif /\.(?:csv)/i =~ file_path
       Document.new(file_path).simple_convert
-    else
+    elsif /\.(?:csv)/i =~ file_path
       Document.new(file_path).raw_convert
     end
   end
@@ -89,7 +89,7 @@ module GlobalExcelReader
         self.nuanced_convert(@file_path)
       elsif /\.(?:csv)/i =~ @file_path
         self.simple_convert
-      else
+      elsif /\.(?:xml)/i =~ @file_path
         self.raw_convert(@file_path)
       end
     end

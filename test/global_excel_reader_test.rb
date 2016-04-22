@@ -10,6 +10,8 @@ describe GlobalExcelReader do
                                             'animal_network.csv') }
   let(:animal_network_xls_file) { File.join(File.dirname(__FILE__),
                                             'animal_network.xls') }
+  let(:animal_network_word_file) { File.join(File.dirname(__FILE__),
+                                            'animal_network.txt') }
   let(:animal_network_xml_file) { File.join(File.dirname(__FILE__),
                                             'animal_network_2.xml') }
 
@@ -17,6 +19,7 @@ describe GlobalExcelReader do
   let(:subject_csv) { GlobalExcelReader::Document.new(animal_network_csv_file) }
   let(:subject_xls) { GlobalExcelReader::Document.new(animal_network_xls_file) }
   let(:subject_xml) { GlobalExcelReader::Document.new(animal_network_xml_file) }
+  let(:subject_word) { GlobalExcelReader::Document.new(animal_network_word_file) }
 
   describe '#to_hash' do
     it 'reads an xlsx file into a hash of {[sheet name] => [data]}' do
@@ -32,6 +35,12 @@ describe GlobalExcelReader do
            ["Big Bird", "Formula Dates", "Tricky tricky", Time.parse("2002-01-03 14:00:00 UTC"), 0, nil],
            ["Empty Eagress", nil, "The title, date, and comment have types, but no values", nil, nil, nil]]
       })
+    end
+  end
+
+  describe '#to_hash' do
+    it 'does not read an word document' do
+      subject_word.to_hash.must_equal(nil)
     end
   end
 
